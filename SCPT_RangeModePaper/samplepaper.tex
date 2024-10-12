@@ -1,0 +1,649 @@
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.21 of 2022/01/12
+%
+\documentclass[runningheads]{llncs}
+%
+\usepackage[T1]{fontenc}
+% T1 fonts will be used to generate the final print and online PDFs,
+% so please use T1 fonts in your manuscript whenever possible.
+% Other font encondings may result in incorrect characters.
+%
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+% If you use the hyperref package, please uncomment the following two lines
+% to display URLs in blue roman font according to Springer's eBook style:
+%\usepackage{color}
+%\renewcommand\UrlFont{\color{blue}\rmfamily}
+%
+\begin{document}
+%
+\title{Linear-Space Data Structure for Parametrized Range Mode Query in Arrays\thanks{Supported by Alexandru Ioan Cuza Universy of Iași.}}
+%
+%\titlerunning{Abbreviated paper title}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+\author{Ovidiu Rața\inst{1}, Paul Diac\inst{1}}
+%
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+\institute{Alexandru Ioan Cuza Universy of Iași,\\ Faculty of Computer Science, Iași, Romania}
+%
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract}
+We present a data structure for the range mode query problem, studied by Chan et al \cite{chan2014linear}, He,Liu.\cite{he_et_al:LIPIcs.SEA.2023.19} and Xu, Williams et al\cite{gu2021faster}, which requires $O(n)$ space,
+and answers queries on an interval $[i, j]$ in parametrized $O(\sqrt{j-i+1})$ time. The standard RAM model is assumed, with word size $w = \Omega ( \log n )$.\\
+
+Additionally, we present a linear-space data structure, that requires \\ 
+$O(\min( \sqrt{j-i+1}, \sqrt{j/w} ) )$ parametrized time per query, 
+and supports element insertion at the end of the array $A[1:n]$ that requires $O( \sqrt{n \cdot w} )$ time, by improving over the method proposed by Chan et al\cite{chan2014linear}, using compact rank/select data structures 
+that also support adding an element at the end of the binary array.
+
+
+\keywords{ Data structure  \and Parametrized algorithms \and Range queries \and Mode.}
+\end{abstract}
+%
+%
+%
+\section{Introduction}
+
+\section{Finding a Range Mode}
+Our data structure is constructed by extending the ideas of Chan et al\cite{chan2014linear}.
+
+\subsubsection{Data Structure precomputation.} Let $D$ denote the set of elements of the array $A$, and assume some arbitrary ordering on the elements. 
+We denote the number of distinct elements of $A$ as $\Delta$. First, we apply rank-space reduction, and 
+construct the array $B$, such that, for each $i$, $B[i]$ stores the rank of $A[i]$ in $D$. Thus, $B[i]\in \{1,\dots, \Delta\}$.
+Let $C$ be an array of size $\Delta$, that provides a direct mapping from $\{1,\dots,\Delta\}$ to $D$. Set $D$ and arrays $B$ and $C$
+can be computed inf $O(n \log\Delta )$ time. Further, we will focus on finding a range mode $x$, over array $B$, which will be transformed into the 
+respective range mode over array $A$, using array $C$, that is, $y=C[x]$.
+For each $a\in \{1,\dots \Delta\}$, let $Q_a = \{ b\ |\ B[b]=a  \} $. We will represent the sets $Q_a$ as ordered arrays. Also, we define the array $Q^{-1}$, of size $n$, s.t. $\forall i \in \{1,\dots ,n\}, Q^{-1}_i=k, Q_{B_i}(k)=i$.
+
+%We also declare array $E$ of size $\delta$, which initially has all entries set to $0$, and which will be used to store the 
+%frequency values calculated for individual elements of array $B$, during queries. 
+%After each query, the accessed entries of array $E$ will also be set back to $0$.\\
+
+%The main idea behind the construction of the data structure, is to separate it into $\lfloor log  n \rfloor + 1 $ levels, numbered $0$ through 
+%$\lfloor log n \rfloor $. Level $l$, will correspond to 
+
+\subsubsection{Additional Definitions.}
+Let $\phi(i,j)$ be the function that returns the frequency of the most frequent element in the range $B[i:j]$.
+
+Let $\textbf{freq}_x(i,j)$, be the frequency of element $x$ of array $B$, inside the interval $[i,j]$.
+
+
+Further, we will show how to build a data structure, that supports parametrized range mode query in time $O(\sqrt{j-i+1})$ for a query interval
+$[i,j]$.
+
+
+\begin{lemma}
+    Given an array $A[1:n]$, there exists a data structure, requiring arrays $B$, $C$, $Q$, $Q^{-1}$ and $ O(n/w) $ additional words of RAM, that for some fixed integer 
+    $L \in \{ 0 , \cdots , \lceil  \log n \rceil \}$, for intervals $[i,j]$ s.t. $ 2^{L-1} < j-i+1 \leq 2^L$
+    supports queries of the following form, in $O(\sqrt{2^L})$ time: 
+
+    For the interval $[i,j]$, determine an element $x$, s.t. $\textbf{freq}_x(i,j) \geq \min(\phi(i,j), \sqrt{2^L})$
+
+    % for the most frequent element, in $O(\sqrt{2^L} )$ time, over intervals , for elements, whose frequency in the interval $[i,j]$ is $\leq \sqrt{2^L}$
+\end{lemma}
+\begin{proof}
+    First, we fix an integer $L \in \{ 0 , \cdots , \lceil  \log n \rceil \}$.
+    Then, we separate the array $A[1:n]$ into adjacent blocks, of length $b_L = \sqrt{2^L}$. The block $i\in \{1,\dots, \lfloor \frac{n}{b_L} \rfloor\}$ 
+    encompasses the interval $[(i-1) \cdot b_L +1, \min(i\cdot b_L , n)]$.
+    
+    Let $s_i^L$, be a binary string, similar to the string defined in the data structure proposed by Chan et al.\cite{chan2014linear}:
+    
+    \begin{definition}
+        For integer $L \in \{ 0 , \cdots , \lceil  \log n \rceil \}$, and block $i$ of size $\sqrt{2^L}$, let $s_i^L$ be a binary string, obeying the following properties:
+        
+        \begin{property}
+            Consider the interval of blocks, from block $i$ to block $j=\min( \lfloor \frac{n}{b_L} \rfloor, i+\sqrt{2^L}-1 )$.
+            There will be $j-i+1=O(\sqrt{2^L})$ bits with value $1$ in $s_i^L$, the $k$-th set bit corresponding to the right border of the interval $k$.        
+        \end{property}
+
+        \begin{property}
+            For any integer $k\in [i,j]$, consider the interval of blocks $[i,k]$.
+
+            For the interval of blocks $[i,k]$, consider the endpoints of array $A$ which correspond to the left endpoint of the block $i$, and the right endpoint of the block $k$ 
+            to be $i'=(i-1)\cdot b_L+1, k'=k\cdot b_L$.
+
+            In the string $s_i^L$, there are exactly $\min(\sqrt{2^L}, \phi(i',k') )$ bits with value $0$ to the left of the $k$-th set bit. 
+        
+        \end{property}
+
+    \end{definition}
+    
+    Note that the length of the binary string $s_i^L$ is at most $ 2\cdot \sqrt{2^L} = O(\sqrt{2^L})$.
+    
+    Every string $s_i^L$, can be represented with a succint or compact data structure that supports rank-select operations, in $O(\sqrt{2^L}/w)$ RAM words.
+    
+    There are $\lfloor \frac{n}{2^L} \rfloor$ blocks of length $b_L$, thus, the space necessary for maintaining the strings $s_i^L$ is:
+    \[
+        \lfloor \frac{n}{2^L} \rfloor \cdot O(\sqrt{2^L}/w) = O(n/w) \text{ words of RAM. }
+    \]
+
+
+    \subsubsection{Query Algorithm.} The query alorithm is similar to that of the data structure proposed by Chan et al.\cite{chan2014linear}:
+
+    \begin{enumerate}
+        \item[] Given the interval $[i,j]$:
+        \item If $j-i+1\leq 2\cdot \sqrt{2^L}$, then just iterate through the elements of $[i,j]$ in $O(\sqrt{2^L})$ time, or determine the blocks that are entirely contained inside of $[i,j]$.
+         Let the block and the last blocks be $\beta_1$ and $\beta_2$ respectively.  
+        \item There will be at most $\sqrt{2^L}$ blocks from block $\beta_1$ to block $\beta_2$.
+        
+         Let $[i', j']$ be the interval of $A$, which corresponds to blocks $\beta_1$ through $\beta_2$.
+         We will use the string $s^L_{\beta_1}$ to get the frequency $f$, of an element from $[i',j']$ s.t. $f \geq \min( \phi(i',j'),\sqrt{2^L} )$.
+         This can be done by select operations over $s^L_{\beta_1}$, more precisely, we will determine $p=\textbf{select}_1(s^L_{\beta_1}, \beta_2-\beta_1+1 )$, 
+         which is the position in the string $s^L_{\beta_1}$, corresponding to the right endpoint of the block $\beta_2$, with respect to block $\beta_1$. 
+        The value $f$, corresponding to the number of bits with value $0$ in the interval $[1 , p_2]$ of the string $s^L_{\beta_1}$, can be calculated as follows:
+         \[
+            f = (p_2)-(\beta_2-\beta_1+1)
+         \]
+        We can further use binary search, to get the number $\beta_f$ and the position $p_f$ in string $s^L_{\beta_1}$ of the first block, such that there are exactly $f$ bits with value $0$ in the interval 
+        $[1,  p_f]$ of the string $s^L_{\beta_1}$. 
+        Further, we can iterate through each position $k$, of the block $\beta_f$, and use arrays $Q_{B_k}$ in order to determine an element $ x $ with frequency at least $f$. (Chan et al.\cite{chan2014linear}) 
+
+        This procedure will take $O(\sqrt{2^L})$ time, as the most time consuming step is the iteration through elements of $\beta_f$.
+         
+        We must also note, that this step will yield exactly the answer for the query $[i',j']$.
+
+         \item Further, we can iterate through each position $k\in ([i,j]\setminus [i', j'])$, 
+         and increase $f$ every time we can, by checking whether $Q_{B_k}(Q^{-1}_k \pm (f+1) ) \in [i,j]$. This will clearly take $O(\sqrt{2^L} )$ time, as there will be $O(\sqrt{2^L})$ elements in the prefix and suffix of $[i,j]$, and we will 
+         increase $f$ at most $O(\sqrt{2^L})$. 
+
+         This step clearly determines the answer for the query $[i,j]$, as it uses the value $f$ characterising the answer for the query $(i',j')$, and uses the prefix and suffix of $[i,j]$, in order to adapt $f$ 
+         to the answer for the query $(i,j)$. These steps are the same as in the data structure proposed by Chan et al.\cite{chan2014linear}, and proofs for their correctness are also provided in their work. 
+
+        \end{enumerate}
+        
+        Finally, the required element $x$ of the range $B[i:j]$, can be transformed to the corresponding element of $A$, which is $C_{ x }$. 
+        Thus, the answer to the query $(i,j)$ given above, is calculated in $O(\sqrt{2^L})$ time.$\qed$ 
+
+
+
+\end{proof}
+
+
+Further, for any integer $L \in \{ 0 , \cdots , \lceil  \log n \rceil \}$ we will define $b_L'=2^L$, as the size of the big blocks, and will separate the array $B[1:n]$ into adjacent blocks of size $b_L'$.
+If we cannot exactly divide the array $B[1:n]$ into blocks of size $b_L'$, then the last elements of array $B[1:n]$ will just be included into a last block, of size $<b_L'$.
+
+For every block $i\in\{ 1,\dots,\lceil \frac{n}{b_L'} \rceil \}$ of size $b_L'$, we denote by $F_i^L$, the set of elements in the range $B[(i-1) \cdot b'_L +1: \min((i+1)\cdot b_L' , n)]$, that have frequency $>\sqrt{2^L}$. 
+Note that the interval $[(i-1) \cdot b'_L +1: \min((i+1)\cdot b_L' , n)]$ contains $2$ big blocks, if its size is not limited by $n$.  
+
+If we maintain the sets $F_i^L$ as ordered arrays, then the amount of space required for storing $F_i^L$ will be:
+\[
+    \sum_{L=0}^{\lceil \log n \rceil} \sum_{i=1}^{\lceil \frac{n}{b_L'}\rceil } |F_i^L| \leq \sum_{L=0}^{\lceil \log n \rceil} \sum_{i=1}^{\lceil 2 \cdot \frac{n}{b_L'}\rceil } 2\cdot \sqrt{2^L} 
+\]
+\[
+    = O(  \sum_{L=0}^{\inf} \sum_{i=1}^{ \lfloor \frac{n}{2^L} \rfloor } \sqrt{2^L} ) = O( \sum_{L=0}^{\inf} \lfloor \frac{n}{2^L} \rfloor \cdot \sqrt{2^L} )
+\]
+
+\[
+    = O( \sum_{L=0}^{\inf} \frac{n}{\sqrt{2^L}} ) = O( \sum_{L=0}^{\inf} \frac{n}{\sqrt{2^L}}  ) = O( n \cdot \sum_{L=0}^{\inf} \frac{1}{\sqrt{2^L}}  )
+\]
+\[
+    = O( n \cdot \frac{ \sqrt{2} }{ \sqrt{2} - 1 }  ) = O(n)
+\]
+
+
+Thus, storing the sets $F_i^L$ is $O(n)$ words of RAM, as storing each element of $F_i^L$ requires $1$ word of RAM.
+
+\begin{lemma}
+    Given an array $A[1:n]$, there exists a data structure, requiring arrays $B$, $C$, $Q$, $Q^{-1}$, $F_i^L$ and $ O(n/w) $ additional words of RAM, that for some fixed integer 
+    $L \in \{ 0 , \cdots , \lceil  \log n \rceil \}$, for intervals $[i,j]$ s.t. $ 2^{L-1} \leq j-i+1 < 2^{L}$
+    and supports queries of the following form, in $O(\sqrt{2^L})$ time:
+
+        For the range $A[i:j]$, determine an element of frequency $\phi(i,j)$, if $\phi(i,j)>\sqrt{2^L}$, or $-1$ if no such element exists. 
+\end{lemma}
+\begin{proof}
+    First, we fix an integer $L \in \{ 0 , \cdots , \lceil  \log n \rceil \}$.
+    Then, we separate the array $A[1:n]$ into adjacent blocks, of length $b_L' = 2^L$. The block $i\in \{1,\dots, \lceil \frac{n}{b'_L} \rceil\}$ 
+    encompasses the interval $[(i-1) \cdot b'_L +1, \min(i\cdot b_L' , n)]$.
+    
+    For each element $x$ in $F_i^L$, we define the binary string $Y_{i,x}^L$, the following way:
+    \begin{definition}
+        For integer $l \in \{ 0 , \cdots , \lceil \log n \rceil \}$, for each block $i$ of size $2^L$, for each element $x \in F_i^L$, let $Y_{i,x}^L$ be a binary string, obeying the following properties:
+       \begin{property}
+        The string $Y_{i,x}^L$ will have exactly $2\cdot \sqrt{2^L}$ bits set to value $1$. Each of these bits, will correspond to the right endpoint of a small block of size $b_L=\sqrt{2^L}$, declared in \textbf{lemma 1},
+         that lies inside the big block $i$, of size $b_L'$, or in the big block $i+1$.
+       \end{property}
+
+       \begin{property}
+            For every $k$, from $1$ to  $2\cdot \sqrt{2^L}$, let $k'=\min(k'\cdot b_L+i', n)$ be the right endpoint of the $k$-th small block, counting from the first small block inside of the big block $i$, or just $n$, 
+            if such a block does not exist. Note that the small block $k$ may lie inside the big block $i+1$.
+
+            Inside the string $Y_{i,x}^L$, there will be exactly $\textbf{freq}_x(i',k')$ bits with value $0$ to the left of the $k$-th bit with value $1$.
+        \end{property}
+
+    \end{definition}
+
+    For string $Y_{i,x}^L$, there will be exactly $\text{\textbf{size}}_0=\textbf{freq}_x(b_L'\cdot(i-1)+1, \min( b_L'\cdot (i+1), n) )$ bits with value $0$. 
+    Note that $\text{\textbf{size}}_0>\sqrt{2^L}$.
+    Also, there will be exactly $\text{\textbf{size}}_1=2\cdot \sqrt{2^L}$ bits with value $1$. Thus, the size of the string will be : $\text{\textbf{size}}_0+\text{\textbf{size}}_1 \leq 3 \cdot \text{\textbf{size}}_0$. 
+
+    Thus, the total length of the strings $Y_{i,x}^L$, over the blocks $i\in \{1,\dots, \lceil \frac{n}{b'_L} \rceil\}$ will be:
+    \[
+        \sum_{i=1}^{\lceil \frac{n}{b_L'} \rceil } \sum_{x\in F_{i}^L } |Y_{i,x}^L| \leq \sum_{i=1}^{\lceil \frac{n}{b_L'} \rceil } \sum_{x\in F_{i}^L } 3 \cdot \text{\textbf{size}}_0
+    \]
+    \[
+        = \sum_{i=1}^{\lceil \frac{n}{b_L'} \rceil } \sum_{x\in F_{i}^L } 3\cdot \textbf{freq}_x(b_L'\cdot(i-1)+1, \min( b_L'\cdot (i+1), n) )
+    \]
+    \[
+        \leq \sum_{x\in F_{i}^L } 3\cdot 2 \cdot \textbf{freq}_x(1,n) \leq \sum_{x \in B[1:n]} 6 \cdot \textbf{freq}_x(1,n) = O(n)
+    \]
+
+    The total $Y_{i,x}^L$ length of the strings will be $O(n)$ bits, thus, for a fixed $L$, they will require $O(n/w)$ words of RAM to be stored, 
+    and to support rank/select operations in $O(1)$.
+
+
+    \subsubsection{Query Algorithm.} The query alorithm is as follows:
+
+        \begin{enumerate}
+            \item[] Given the interval $[i,j]$:
+            
+            \item If $j-i+1\leq 2\cdot \sqrt{2^L}$, then just iterate through the positions of $B[i,j]$ and determine the answer. 
+            Otherwise, the interval $[i,j]$ will intersect, at most $2$ big blocks of size $b_L'$. Let these blocks be $\beta_1'$ and $\beta_2'$. 
+            Let the interval of small blocks that are entirely covered by the interval $[i,j]$, be $[\beta_1, \beta_2]$. 
+            These blocks can be determined rapidly, as $\beta_2=\lfloor j/b_L \rfloor$ and $\beta_1=\lfloor (i+b_L)/b_L \rfloor$, and similarly 
+            for the big blocks $\beta_1'$ and $\beta_2'$.
+            
+            \item Further, we iterate through each element $x\in F_{\beta_1'}^L$, and determine :
+            \[
+                p_1^x = \textbf{select}_1( Y_{\beta_1',x}^L, \beta_1-(\beta_1'-1)\cdot \frac{b_L'}{b_L}-1 ) , 
+                p_2^x = \textbf{select}_1( Y_{\beta_1',x}^L, \beta_2-(\beta_1'-1)\cdot \frac{b_L'}{b_L} ) 
+            \]
+
+            \[
+                f_x=(p^x_2-p^x_1)-(\beta_2-\beta_1+1), f=\max_{x \in F_{\beta_1'}^L }( f_x )
+            \]  
+            
+            \item Now, we iterate through the positions $k$ of the prefix and the suffix of the interval $[i,j]$, which are not contained in any of the 
+            small blocks in the interval$[\beta_1, \beta_2]$, and check wether we can increase $f$ by $1$ or not, by verifying if $Q_{B_k}(Q^{-1}_k \pm (f+1) ) \in [i,j]$.
+            
+            \item Finally, if $f$ will achieve a value $>\sqrt{2^L}$, then return $f$, or $-1$ otherwise.
+
+        \end{enumerate}
+
+        We can clearly see, that the runtime of the query algorithm will be $O(\sqrt{2^L})$, as the first step requires $O(1)$ time, 
+        the second step requires $O(\sqrt{2^L})$ time, as at most $O(\sqrt{2^L})$ elements of the set $F_i^L$ will be verified and the \textbf{select} operations will take $O(1)$ time.
+        The third step will also take $O(\sqrt{2^L})$ time, as there will be $O(\sqrt{2^L})$ elements of the prefix and the suffix which will have to be verified, and the value of $f$ 
+        will be increases by $1$ at most $O(\sqrt{2^L})$ times. Note that the element $x$ with maximum frequency, can also be easily tracked during each step.   
+
+\end{proof}
+
+Further, we will use the results from \textbf{lemma 1} and \textbf{lemma 2} to prove that a $O(\sqrt{j-i})$ runtime per query is possible, by using $O(n)$ space.
+
+\begin{theorem} 
+    Given an array $A[1:n]$, there exists a data structure, requiring arrays $B$, $C$, $Q$, and additional $O(n)$ words of RAM, that supports 
+    range mode queries over an interval $[i,j]$ in time $O(\sqrt{j-i+1})$.
+\end{theorem}
+\begin{proof}
+    Firstly, we will build the arrays $B$, $C$, $Q$, and $Q^{-1}$, which will take $O(n\log n)$ time and $O(n)$ space. 
+    Also, for each $L\in \{0,\dots,\lceil \log n \rceil\}$, we will build $F^L_i$. It is easy to see, that this will take $O(n\log n)$ time, 
+    and $O(n)$ space.
+
+    Further, for each $L\in \{0,\dots,\lceil \log n \rceil\}$, we will build an instance of the data structure described in \textbf{lemma 1}, denoted by $DS_1^L$, and an instance of the data structure 
+    described in \textbf{lemma 2}, denoted by $DS_2^L$. These instances will take $O(n)$ space, as the arrays $B$, $C$, $Q$, $Q^{-1}$ and $F^L_{i}$ will be shared among them, and the additional information 
+    will take $O(\log n \cdot n/w) = O(n)$ space.
+
+    \subsubsection{Query Algorithm.} The query algorithm is as follows:
+        \begin{enumerate}
+        
+            \item[] Given the interval $[i,j]$:
+            
+            \item Determine the smallest $L$, s.t $2^{L-1}< (j-i+1) \leq 2^L$. Note that $2^L=O(j-i+1)$.
+            
+            \item We will determine $(f, x)=\max( DS_1^L.query(i,j) , DS_2^L.query(i,j) )$, where $DS_1^L.query(i,j)$, and $DS_2^L.query(i,j)$ denotes querying the instances $DS_1^L$ and $DS_2^L$, respectively, for the interval $[i,j]$.
+             $(f,x)$ will be exactly the answer for the query $(i,j)$, as $f=\phi(i,j)$, and $x$ is an element of the array $A$, s.t. $\exists y, s.t.\text{ } (C_y=x) \land (\textbf{freq}_y(i,j)=f)$.
+
+        
+        \end{enumerate}
+
+        The algorithm will take $O(\sqrt{2^L})=O(\sqrt{j-i+1})$ time, as $2^L=O(j-i+1) \qed $. 
+
+\end{proof}
+
+\begin{lemma}
+    Given an array $A[1:n]$, there exists a data structure requiring $O(n)$ words of RAM, that supports 
+    range mode queries over an interval $[i,j]$ in $O( \sqrt{j/w}  )$ time.    
+\end{lemma}
+\begin{proof}
+    Firstly, we build the arrays $B$, $C$, $Q$, $Q^{-1}$, as in the previous data structures.
+    
+    In their work, Chan et al.$\cite{chan2014linear}$ have divided the array $A[1:n]$ into blocks of equal length, in order to prove their result.
+    We will take a similar approach, one of the differences being, that we will divide the array $A[1:n]$, into $O(\sqrt{w\cdot n})$ blocks of varying size.
+
+    Firstly, we divide the array $A[1:n]$ into adjacent big blocks, block $i$ (counting from left to right) having size $i$. It is easy to see, that there will be at most $O(\sqrt{n})$ big blocks.
+    Further, we will divide each big block $i$, into small blocks, of size $i/\sqrt{w}$.
+    Let the number of small blocks be $b$. For each small block $\beta$, of size $size(\beta)$, we will store the string $z_{\beta}$ and the set $H_{\beta}$, defined below:
+    \begin{definition}
+        For each small block $\beta\in\{1,\dots , b\}$, let $z_\beta$ be a binary string obeying the following properties:
+        \begin{property}
+            There are exactly $\beta$ bits with value $1$ in string $z_{\beta}$. The $k$-th bit with value $1$ counting from left to right will correspond to the left endpoint of the $k$-th small interval.    
+        \end{property}
+
+        \begin{property}
+            For each bit $k$ with value $1$, let $l_k$ be the position of the left endpoint of the small block $k$ in array $B$, and let $r_{\beta}$ 
+            be the position of the right endpoint of the small block $\beta$ in array $B$. 
+            There will be exactly $\min(\phi(l_k,r_{\beta}) , b )$ bits with value $0$, to the right of the $k$-th bit with value $1$.
+        \end{property}
+
+    \end{definition}
+
+    \begin{definition}
+        For each small block $\beta \in \{1, \dots, b\}$, having the right endpoint at position $r_{\beta}$ of the array $B$, let $H_\beta$ be the set of elements $x\in B$, s.t. $\textbf{freq}_x(1,r_{\beta})$>$\beta$.
+    \end{definition}
+
+    We must note that, $|H_{\beta}|<r_{\beta}/\beta$, thus, $|H_{\beta}|=O(\sqrt{r_{\beta}/w})$.
+
+    Further, for each element $x$, which is present in at least one set $H_{\beta}$, we will define the string $\eta_{x}$ the following way:
+
+    \begin{definition}
+        For each element $x$ present in at least one set $H_{\beta}$, let $\beta_{\text{max}}$ be rightmost block, s.t. $x\in H_{\beta_{\text{max}}}$. 
+        Let $\eta_x$ be a binary string, obeying the following properties:
+        \begin{property}
+            There are exactly $\beta_{\text{max}}$ bits with value $1$ in string $\eta_x$, $k$-th bit with value $1$ corresponding to the right endpoint of the $k$-th small block.
+        \end{property}
+
+        \begin{property}
+            For each $k\in\{1,\dots, \beta_{\text{max}}\}$, let $r_k$ be the position of the right endpoint of the $k$-th small block in array $B$. 
+            There are exactly $\textbf{freq}_x(1,r_k)$ bits with value $0$ to the left of the $k$-th bit with value $1$ of string $\eta_x$.
+        \end{property}
+    \end{definition}
+
+
+    For each block $\beta$, we can store each set $H_{\beta}$ as an ordered array of pairs of integers $(x, p_x)$, $x$ representing the element of $H_{\beta}$ which is being stored, and $p_x$ is a pointer to the 
+    data structure storing the string $\eta_x$.
+    
+    As, for each small block $\beta$, $|z_{beta}|=O(\sqrt{n\cdot w})$ and $b=O(\sqrt{n\cdot w})$  the total space needed to store the strings $z_{\beta}$ will be:
+    \[
+        \sum_{\beta=1}^{b} |z_{\beta}| = O(\sqrt{n\cdot w}) \cdot O(\sqrt{n\cdot w}) = O(n \cdot w) \text{ bits }
+    \]
+
+    $O(n\cdot w)$ bits will be needed to store the strings $z_{\beta}$, thus, $O(n)$ words of RAM will be stored.
+    
+    As for each small block $\beta$, $|H_{\beta}|=O(\sqrt{n/w})$, the space needed to store the sets $H_{\beta}$ will be:
+
+    \[
+        \sum_{i=1}^{b} | H_{i} | = O( \sqrt{n/w} ) \cdot O( \sqrt{n\cdot w} ) = O(n) \text{ words of RAM. }
+    \]
+
+
+    For each string $\eta_x$, let $\beta_{\text{max}}$ be the rightmost small block that contains $x$, let the number of bits with value $0$, be $size_0(\eta_x)$, and the number of bits with value $1$ be $size_1(\eta_x)$.
+    \[
+        size_0(\eta_x)>\beta_{\text{max}} , size_1(\eta_x)=\beta_{\text{max}} \implies size_0(\eta_x)>size_1(\eta_x)
+    \]
+
+    Thus, the space required to store the strings $\eta_x$ will be:
+
+    \[
+        \sum_{x \in ( \cup_{\beta=1}^{b}H_{\beta} ) } |\eta_x| = \sum_{x \in ( \cup_{\beta=1}^{b}H_{\beta} ) } size_0(\eta_x)+size_1(\eta_x)  
+    \]
+    \[
+        \leq  \sum_{x \in ( \cup_{\beta=1}^{b}H_{\beta} ) } 2\cdot size_0{\eta_x} \leq  \sum_{x \in ( \cup_{\beta=1}^{b}H_{\beta} ) } \textbf{freq}_x(1,n)
+    \]
+    \[
+        =O(n) \text{ bits of space.}
+    \]
+
+    Thus, for maintaining the strings $\eta_x$, we need $O(n/w)=o(n)$ words of RAM.
+
+    Finally, we may state that the total space required by this data structure is $O(n)$.
+
+    \subsubsection{Query Algorithm.} The  query algorithm is as follows:
+    \begin{enumerate}
+        \item[] Given the interval $[i,j]$: 
+        
+        \item We determine the rightmost big block $\beta'$, of size $\beta'$, which intersects $[i,j]$. As the length of the prefix of $B$, covered with big blocks $1$ through $\beta'$, is :
+            \[
+             \sum_{k=1}^{\beta'}k=\frac{\beta'\cdot(\beta'+1)}{2} \leq 2 \cdot j 
+            \] 
+            We can imply that:
+            \[
+                \beta'^2 \leq 2\cdot ( \frac{\beta'\cdot(\beta'+1)}{2} ) \leq 4\cdot j \implies \beta' = O(\sqrt{j}) 
+            \]
+
+        Afterwards, we determine the leftmost and the rightmost small blocks, $\beta_1$ and $\beta_2$, respectively, that are fully contained in the interval $[i,j]$. Note that:
+        \[
+            size(\beta_1)\leq size(\beta_2)
+        \]
+        \[
+            size(\beta_2) = \beta'/\sqrt{w} = O(\sqrt{j/w})
+        \]
+        
+        If there are no small blocks that are fully contained in the interval $[i,j]$, then we can just iterate through  all the elements of $[i,j]$ and determine the range mode, 
+        which will take $O(\sqrt{j/w})$ time.
+
+        \item   Let $l_1$ be the left endpoint of the small block $\beta_1$ and $r_2$ be the right endpoint of the small block $\beta_2$ in array $B$.        
+                We query the string $z_{\beta_2}$, and get the values $p_2=|z_{\beta_2}|$, and $p_1=\textbf{select}_{1}(z_{\beta_2}, \beta_1)$ 
+                corresponding to the left endpoint of the small block $\beta_1$. 
+                Further, we calculate:
+                \[
+                    f = ( p_2 - p_1 )-( \beta_2 - \beta_1 )
+                \] 
+                which corresponds to $f=\min( \phi(  l_1, r_2 ), \beta_2)$.
+
+                In order to get an element $x$, which has frequency at least $f$ in the interval of small blocks $[\beta_1, \beta_2]$, we can get the rightmost position $p'$, 
+                corresponding to the left end of the small block $\beta'$, such that, there are exactly $f$ bits with value $0$ in the interval $[p', p_2]$ in the string $\eta_x$. 
+                This can be done easily, using $\textbf{rank}$ and $\textbf{select}$ 
+                operations, as stated by Chan et al.$\cite{chan2014linear}$. Then, we need to iterate 
+                through each position $k$ of the small block $\beta'$, and check whether there are at least $f$ occurrences of $B_k$ inside the interval of small blocks $[ k , r_2 ]$.
+
+        \item Further, we iterate through the elements $x$ of $H_{\beta_2+1}$, and find the values of their frequencies in the interval of small blocks $[\beta_1,\beta_2]$.
+              In order to find the frequency of element $x$ in the interval of small blocks $[\beta_1, \beta_2]$, we query the string $\eta_x$ for values:
+              \[
+                    p_1=\textbf{select}_1(\eta_x,\beta_1-1)
+              \]
+              \[
+                    p_2 = \textbf{select}_1(\eta_x, \beta_2 )
+              \]
+            $p_1$ being the position of the bit with value $1$ in string $\eta_x$, corresponding to the right endpoint of the small interval $\beta_1-1$, and $p_2$, being the position 
+            of the bit with value $1$, corresponding to the right endpoint of the small interval $\beta_2$.
+            Thus, the  frequency of the element $x$ will be:
+            \[
+                f_x=(p_2-p_1)-( \beta_2-\beta_1+1 )
+            \]
+            Further, we update the value of $f$ the following way: 
+            \[
+                f := \max(f, \max_{x \in H_{\beta_2+1}}(f_x) )
+            \]
+
+            This way, in a manner similar to that presented in $\textbf{lemma 1}$ and $\textbf{lemma 2}$, we obtain the value $\phi( l_1, r_2 )$, 
+            which is exactly the frequency of a mode, in the interval corresponding to the small blocks $\{\beta_1, \beta_1+1,\dots,\beta_2 \}$. We must note, that during this step, it is also easy 
+            to keep track of an element $x$ of maximum frequency.
+
+        \item Now, we must iterate through positions $k \in ( [i,j] \setminus [l_1, r_2] ) $ and try to increase the frequency $f$, using the arrays 
+            $Q$, $B$ and $Q^{-1}$, as in $\textbf{lemma 1}$ and $\textbf{lemma 2}$. This will take at most $O(\sqrt{j/w})$ time, which is an upper bound on the sizes of the small blocks $\beta_1$ and $\beta_2$.
+        
+        
+
+    \end{enumerate}
+
+    This query algorithm will clearly run in time $O(\sqrt{j/w})$, as step 2 takes at most $O(\sqrt{j/w})$ time, step $3$ takes at most $O(\sqrt{ r_2/w } )=O(\sqrt{j/w})$ time, 
+    and step $4$ similarly, takes at most $O(\sqrt{j/w})$ time. $\qed$
+
+\end{proof}
+
+
+\begin{theorem}
+    Given an array $A[1:n]$, there exists a data structure, requiring $O(n)$ words of RAM, that supports 
+    range mode queries over an interval $[i,j]$ in time $O(\min ( \sqrt{j-i+1}, \sqrt{j/w} ) )$.    
+\end{theorem}
+\begin{proof}
+    Firstly, we will build the arrays $B$, $C$, $Q$, and $Q^{-1}$, which will take $O(n\log n)$ time and $O(n)$ space.
+    Further, we will build an instance of the data structure defined in \textbf{lemma 3}, denoted by $DS_1$, and an instance of the data structure defined in \textbf{theorem 1}, denoted by $DS_2$.
+    The arrays, as well as both of the instances of the data structures mentioned above, will require $O(n)$ space, thus, the space required by the current data structure is $O(n)$.
+    
+    \subsubsection{Query Algorithm.} The query algorithm is as follows:
+    \begin{enumerate}
+        \item[] Given the interval $[i,j]$:
+        
+        \item Estimate the time required by a query over the data structure $DS_1$ and the interval $[i,j]$. Let this time estimation be $t_1$. 
+              Estimate the time required by a query over the data structure $DS_2$ and the interval $[i,j]$. Let this time estimation be $t_2$. 
+        
+        \item If $t_1<t_2$, then, return $DS_1.query(i,j)$, otherwise, return $DS_2.query(i,j)$.      
+    
+    \end{enumerate}
+
+    It is easy to do the time estimates $t_1$ and $t_2$ up to a constant factor, in at most logarithmic time.
+    
+    Thus, the runtime of the query algorithm is $O(\min ( \sqrt{j-i+1}, \sqrt{j/w} ) )$.$\qed$
+
+\end{proof}
+
+
+\section{Adding Elements at the End of the Array}
+
+Further, considering the fact, that we can implement a compact, $O(1)$ rank/select, data structure, that support adding a bit to the 
+end of the array in $O(1)$, we will show how to make the data structure from section $2$ support adding an element at the end of the 
+array $A[1:n]$ in $O(\sqrt {n \cdot w} )$ time, while requiring linear space and keeping the same query time.
+
+
+
+\begin{lemma}
+    Given an array $A[1:n]$, there exists a data structure, that respects the same conditions as the data structure constructed in 
+    Lemma $1$, and also supports adding an element at the end of the array $A[1:n]$, in $O(\sqrt{2^L})$ time.
+
+\end{lemma}
+\begin{proof}
+    As the only data stored in the data structure from $\textbf{lemma 1}$, are the strings $s^L_{\beta_1}$, we will present an algorithm to update $s^L_{\beta_1}$, 
+    as new elements are added to the end of array $A$.
+    
+    \subsubsection{Update Algorithm.}
+    Suppose that there are $\beta'$ big blocks of size exactly $b_L'=2^L$ that are fully contained in array $B[1:n]$. 
+    Let $\beta$ be the number of small blocks, of size $b_L=\sqrt{2^L}$, that are fully contained in the array $B[1:n]$. 
+    Let $\beta_{new}=\beta+1$ be the new small block, which is constructed as new elements are appended to the end of $A[1:n]$.
+
+
+    
+    \begin{enumerate}
+        \item[] An update is given, in the form of a number $x$, that must be added to the end of $A[1:n]$.
+        
+        \item Determine the element $y$ of array $B$, s.t. $C_{y}=x$, then add $n+1$ to the end of $Q_{y}$, and add $size(Q_{y})$ to the end of $Q^{-1}$.
+        If such an element $y$ does not exist, then, $\Delta := \Delta+1$ and $y:=\Delta$, 
+        add $x$ to the end of the array $C$, define $Q_{y}=\{n+1\}$, and add $1$ to the end of $Q^{-1}$. Add $y$ to the end of $B$. 
+        
+        \item 
+        For each small block $\beta_i\in \{ \beta_{new}-\sqrt{2^L}+1, \dots , \beta_{new} \}$, let $l_i$ be the left endpoint of $\beta_i$. 
+        We must check, whether the new element $y$ added to $B[1:n]$, changes the maximum frequency 
+        inside the interval of small blocks $[\beta_i, \beta_{new}]$, by verifying the following condition:
+        \[
+            p=|s^{L}_{\beta_i}|, c_1 = \textbf{rank}_1(s^{L}_{\beta_i}, p)
+        \]
+        \[
+            f=p-c_1, l_y = Q_{y}( Q^{-1}(n+1)-f-1 )
+        \]
+        \[
+            l_y \geq l_i \text{ and } f+1\leq \sqrt{2^L}
+        \]
+
+        If this condition holds, then we add a bit with value $0$ to the end of $s^L_{\beta_i}$. This will signify 
+        the increase in the maximum frequency of an element, recorded by the string $s^{L}_{\beta_i}$. We must also note, that the strings $s^{L}_{\beta_i}$ will change 
+        their structure during these intermediary frequency-increase steps, as bits with value $0$ will be present at the end of $s^{L}_{\beta_i}$. 
+        This will not influence the queries over $s^{L}_{\beta_i}$ required by the data structure from $\textbf{lemma 1}$.
+
+        \item If the position $n+1$ is the right endpoint of a new small block $\beta_{ \text{new} }$ that is now fully contained in array $B[1:(n+1) ]$, 
+        then, for each $\beta_i\in \{ \beta_{new}-\sqrt{2^L}+1, \dots , \beta_{new} \}$,  we must update the information stored in $s^L_{\beta_i}$. 
+        In such a case, we must add $1$ to the end of $s^L_{\beta_i}$, which will signify the addition of a right endpoint of a new full small block.  
+        
+    \end{enumerate}
+
+    It is easy to see that the first step takes at most logarithmic time. The second step, will take $O(\sqrt{2^L})$ time, as there may be at most $O(\sqrt{2^l})$ small blocks $\beta_i$, 
+    and each append of a bit to the end of $\beta_i$ takes $O(1)$ time. Similarly, the third step takes $O(\sqrt{2^L})$ time.
+
+    The required space will still remain linear, as $s^L_{\beta_1}$ has been proven to require $O(n/w)$ words of $RAM$, and $O(1)$ more space will be added at each update. $\qed$
+
+\end{proof}
+
+
+\begin{lemma}
+    Given an array $A[1:n]$, there exists a data structure, that respects the same conditions as the data structure constructed in 
+    Lemma $2$, and also supports adding an element at the end of the array $A[1:n]$, in $O(\sqrt{2^L})$ time.
+
+\end{lemma}
+\begin{proof}
+    As the only data stored in the data structure from $\textbf{lemma 2}$, are the sets $F^L_i$ and the strings $Y^L_{i,x}$, 
+    we will present an algorithm to update them, as new elements are added to the end of array $A$.
+
+    \subsubsection{Update Algorithm.}
+    Suppose that there are $\beta'$ big blocks of size exactly $b_L'=2^L$ that are fully contained in array $B[1:n]$. 
+    Let $\beta$ be the number of small blocks, of size $b_L=\sqrt{2^L}$, that are fully contained in the array $B[1:n]$. 
+    Let $\beta_{new}=\beta+1$ be the new small block, which is constructed as new elements are appended to the end of $A[1:n]$, 
+    and $\beta_{new}'=\beta'+1$ be the new big block, which is constructed as new elements are appended to the end of $A[1:n]$.
+
+    \begin{enumerate}
+        \item[] An update is given, in the form of a number $x$, that must be added to the end of $A[1:n]$.
+        
+        \item Determine the element $y$ of array $B$, s.t. $C_{y}=x$, then add $n+1$ to the end of $Q_{y}$, and add $size(Q_{y})$ to the end of $Q^{-1}$.
+        If such an element $y$ does not exist, then, $\Delta := \Delta+1$ and $y:=\Delta$, 
+        add $x$ to the end of the array $C$, define $Q_{y}=\{n+1\}$, and add $1$ to the end of $Q^{-1}$. Add $y$ to the end of $B$. 
+        
+        \item We must first check, if the frequency of the element $y$ in the interval of $B$, 
+        corresponding to the interval of big blocks $[\beta', \beta'_{new}]$ is $>\sqrt{2^L}$. 
+        According to Chan et al.\cite{chan2014linear}, this can be done in $O(\log n)$ time, using the arrays $Q_{y}$ and $Q^{-1}$.
+
+        If the frequency of $y$ is not big enough, then we can stop the update procedure.
+
+        Otherwise, we must check whether the element $y$ is present in $F^L_{\beta_{new}'}$. 
+        This can be done simply, by iterating through the elements of $F^L_{\beta_{new}'}$. 
+
+        If $y$ is present in $F^L_{\beta_{new}'}$, then we must add $0$ to the end of $Y^L_{\beta_{new}, y}$.
+        Otherwise, we must create the string $Y^L_{\beta_{new}, y}$, and add the pair $(y, p_y)$ to the end of $F^L_{\beta_{new}}$.
+        
+        \item In this step, we will present a procedure, to create the string $Y^L_{\beta_{new}, y}$, 
+        when $y$ has to be added to the set $F^L_{\beta_{new}}$ for the first time.
+    \end{enumerate}
+
+
+\end{proof}
+
+
+\begin{theorem}
+    Given an array $A[1:n]$, there exists a data structure, requiring arrays $B$, $C$, $Q$, and additional $O(n)$ words of RAM, that supports 
+    range mode queries over an interval $[i,j]$ in $O(\sqrt{j-i+1})$ time, and supports adding an element at the end of $A[1:n]$ in $O(\sqrt{n})$ time.
+\end{theorem}
+\begin{proof}
+
+\end{proof}
+
+\begin{lemma}
+    Given an array $A[1:n]$, there exists a data structure requiring $O(n)$ words of RAM, that supports 
+    range mode queries over an interval $[i,j]$ in $O( \sqrt{j/w}  )$ time, and supports adding an element at the end of $A[1:n]$ in $O(\sqrt{n \cdot w})$ time. 
+\end{lemma}
+\begin{proof}
+
+\end{proof}
+
+
+\begin{theorem}
+    Given an array $A[1:n]$, there exists a data structure, requiring $O(n)$ words of RAM, that supports 
+    range mode queries over an interval $[i,j]$ in $O(\min ( \sqrt{j-i+1}, \sqrt{j/w} ) )$ time, and supports adding an element at the end of $A[1:n]$ in $O(\sqrt{n \cdot w})$ time.     
+\end{theorem}
+\begin{proof}
+
+\end{proof}
+
+\section{Compact rank/select data structure}
+We present a compact data structure, that supports $O(1)$ rank/select/access operations over a binary array $B$ of length $Z$, by using $O(Z)$ additional bits of space, and supports adding bits, one-by-one, at the end 
+of array $B$ in $O(1)$ time.
+
+%
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+%
+% \bibliographystyle{splncs04}
+% \bibliography{mybibliography}
+%
+
+\bibliographystyle{splncs04}
+\bibliography{samplepaper}
+
+
+\end{document}
