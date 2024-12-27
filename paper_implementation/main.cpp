@@ -94,11 +94,11 @@ int main(){
     update(1);
     cout<<query(1,2)<<"\n"<<flush;
     cout<<query(1,3)<<"\n"<<flush;
-    for (int i=1 ;i<=1000000; i++)
+    for (int i=1 ;i<=5000000; i++)
     {
         update(i%100);
     }
-    cout<<query(1,1000000)<<"\n"<<flush;
+    cout<<query(1,5000000)<<"\n"<<flush;
 
 
     auto finish = std::chrono::high_resolution_clock::now();

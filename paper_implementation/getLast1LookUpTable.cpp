@@ -10,8 +10,12 @@ class GetLast1LookUpTable{
         for(int msk=0; msk<(1<<sz); msk++){
             //lookUp[i]=sizeof(unsigned short int)-__builtin_clz(msk);
             for(int i=0; i<sz; i++){
-
-                lookUp[msk][i+1]=8*sizeof(msk)-__builtin_clz( msk & ( ( (1<<(i+1))-1 ) ) );
+                if( (int) (msk & ( ( (1<<(i+1))-1 ) ) ) >0 ){
+                    lookUp[msk][i+1]=32-__builtin_clz( (int) (msk & ( ( (1<<(i+1))-1 ) ) )  );
+                }
+                else{
+                    lookUp[msk][i+1]=0;
+                }
                 //cout<<lookUp[msk][i+1]<<endl;
             }
         }

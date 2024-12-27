@@ -40,7 +40,7 @@ class LambdaDataStructure{
     }
 
 
-    void update(int x){
+    void update(){
       if( (n % t_lambda)==1 || t_lambda==1 ){
         delta.emplace_back();
         y.emplace_back();
@@ -83,23 +83,28 @@ class LambdaDataStructure{
 
     [[nodiscard]] int getBlockOfPosition(const int i) const
     {
-      return (i-1)/t_lambda+1;
+      return (i-1) / t_lambda + 1;
     }
 
-    int query(const int i, const int j){
+    pair<int, int> query(const int i, const int j){
       const int b1 = getBlockOfPosition(i)+1;
       const int b2 = getBlockOfPosition(j)-1;
       int f = 0;
-      int x = 0;
+      int x = -1;
       if (b2>=b1)
       {
         const int p_last = y[b1].getLast1( b2-b1+1 );
+
         const int bs = b1+p_last-1;
         f = t_lambda*delta[b1].getRank1(b2-b1+1);
+
+        //cout<<p_last<<" p_last "<< bs<<" bs "<<" f "<<f<< " t_lambda "<< t_lambda<<" s_lambda "<<s_lambda<< "\n";
+
         for (int k = (bs-1)*t_lambda+1; k<=bs*t_lambda; k++ )
         {
           const int p = Q_1[k];
           const int e = B[k];
+          //if( e==26 ){cout<<"26 found\n";}
           while ( p>=f+1 && ( Q[e][p-f]>=(b1-1)*t_lambda+1 ) )
           {
             x=e;
@@ -108,29 +113,29 @@ class LambdaDataStructure{
         }
       }
 
-      for (int k=(b1-1)*t_lambda-1; k>=i; k--)
+      for (int k=min(j,(b1-1)*t_lambda); k>=i; k--)
       {
         int p = Q_1[k];
         int e = B[k];
-        if (p+f <= ( (int)(Q[e].size())-1 ) && Q[e][p+f]<=j  )
+        while (p+f <= ( (int)(Q[e].size())-1 ) && Q[e][p+f]<=j  )
         {
           x=e;
           f=f+1;
         }
       }
 
-      for (int k=b2*t_lambda+1; k<=j; k++ )
+      for (int k=max(b2*t_lambda+1, i); k<=j; k++ )
       {
         int p = Q_1[k];
         int e = B[k];
-        if ( p>=f+1 && Q[e][p-f]>=i )
+        while ( p>=f+1 && Q[e][p-f]>=i )
         {
           x=e;
           f=f+1;
         }
       }
 
-      return f;
+      return {x,f};
     }
 
 

@@ -11,16 +11,16 @@ vector<LambdaDataStructure> lambdaDataStructuresArray;
 
 void DataStructure1(){
     T=10;
-    lambdaDataStructuresArray={NULL};
+    lambdaDataStructuresArray={LambdaDataStructure(1)};
     for(int i=1; i<=T; i++){
         lambdaDataStructuresArray.emplace_back(i);
     }
 };
 
 
-void updateDataStructure(int x){
+void updateDataStructure(){
     for(int i = 1; i <= T; i++){
-        lambdaDataStructuresArray[i].update(x);
+        lambdaDataStructuresArray[i].update();
     }
 
     if( logUpperBound(n)*2>T ){
@@ -75,11 +75,11 @@ void updateDataStructure(int x){
 
 void update(int x){
     updateArrays(x);
-    updateDataStructure(x);
+    updateDataStructure();
 }
 
 
-int query(int i, int j){
+pair<int, int> query(int i, int j){
     int length = j-i+1;
     int lambda = logUpperBound(length);
     return lambdaDataStructuresArray[lambda].query(i,j);

@@ -30,4 +30,5 @@ void updateArrays(int x){
     B.push_back(index);
     Q[index].push_back(n);
     Q_1.push_back( ((int)(Q[index].size())) - 1 );
+	//cout<<x<<" "<<A.back()<<" "<<B.back()<<" "<<Q[index].back()<<" "<<Q_1.back()<<endl;
 }

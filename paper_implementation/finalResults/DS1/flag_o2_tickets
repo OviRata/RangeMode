@@ -1,0 +1,40 @@
+Building time: 2484760845 microseconds
+Total memory usage: 5664440 KB
+Average memory usage per symbol: 5800.39 Bits
+for log k=1 :29.9781
+for log k=10 :22.9316
+for log k=100 :18.8424
+for log k=1000 :8.69024
+for log k=10000 :3.59087
+for log k=100000 :1.24538
+for log k=1000000 :0.416148
+for length=1 :0.0012883
+for length=10 :0.895099
+for length=100 :1.89679
+for length=1000 :4.92159
+for length=10000 :14.7266
+for length=100000 :24.3886
+for length=1000000 :20.6612
+for log_2 (length)=0 :0.0014397
+for log_2 (length)=1 :0.0022327
+for log_2 (length)=2 :0.239248
+for log_2 (length)=3 :0.734227
+for log_2 (length)=4 :1.0086
+for log_2 (length)=5 :1.25279
+for log_2 (length)=6 :1.77942
+for log_2 (length)=7 :2.68357
+for log_2 (length)=8 :3.54316
+for log_2 (length)=9 :4.89389
+for log_2 (length)=10 :6.68214
+for log_2 (length)=11 :9.99295
+for log_2 (length)=12 :12.0688
+for log_2 (length)=13 :14.4148
+for log_2 (length)=14 :19.5443
+for log_2 (length)=15 :23.8195
+for log_2 (length)=16 :28.3341
+for log_2 (length)=17 :30.025
+for log_2 (length)=18 :27.0071
+for log_2 (length)=19 :26.4353
+for log_2 (length)=20 :24.6987
+for log_2 (length)=21 :35.3184
+for log_2 (length)=22 :36.2315

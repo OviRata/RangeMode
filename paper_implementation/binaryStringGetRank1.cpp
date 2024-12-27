@@ -56,7 +56,7 @@ class BinaryStringGetRank1
         }
     }
 
-    void append(short int b){
+    void append(unsigned short int b){
         n++;
         int sz = 16;
         int numberOfBlock = (n-1)/sz+1;
@@ -74,11 +74,11 @@ class BinaryStringGetRank1
     }
 
 
-    void setLast(short int b){
+    void setLast(unsigned short int b){
         int sz = 16;
         int numberOfBlock = (n-1)/sz+1;
         int j = n-(numberOfBlock-1)*sz;
-        if( b!=(arrayMasks.back()&( 1<<(j-1) )) ){
+        if( b!=((unsigned short int)((arrayMasks.back()&( 1<<(j-1) ))>0)) ){
             arrayMasks[ arrayMasks.size()-1 ]^=( 1<<(j-1) );
             if( n%sz==0 ){
                 smallArrayIndexes[ ((int)smallArrayIndexes.size())-1 ]=lastBlockValue();

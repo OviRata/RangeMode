@@ -6,12 +6,12 @@ using namespace std;
 
 
 int s;
-vector<int> L={0, 1}, R={0, 1};
+vector<int> L={0}, R={0};
 
-vector<int> tau={0, 0};
+vector<int> tau={0};
 
-vector<BinaryStringGetLast1> y={BinaryStringGetLast1()};
-vector<BinaryStringGetRank1> delta={BinaryStringGetRank1()};
+vector<BinaryStringGetLast1> y={};
+vector<BinaryStringGetRank1> delta={};
 int w = 64, sqrtW=8;
 
 int getSmallBlockOfPosition(int i){
@@ -29,10 +29,10 @@ int getSmallBlockOfPosition(int i){
 }
 
 
-int getBigBlockOfPosition(int i){
-  int l = 0, r = R.size()-1;
+int getBigBlockOfPosition(long long i){
+  long long l = 0, r = n;
   while(l<r){
-    int mid = (l+r)>>1;
+    long long mid = (l+r)>>1;
     if( mid*(mid+1)/2>=i ){
       r=mid;
     }
@@ -49,7 +49,7 @@ int size(int beta){
 
 
 
-int query(int i, int j){
+pair<int, int> query(int i, int j){
   int beta1 = getSmallBlockOfPosition(i)+1;
   int beta2 = getSmallBlockOfPosition(j)-1;
   int f = 0;
@@ -70,7 +70,7 @@ int query(int i, int j){
 
   }
 
-  for(int k = i; k<=R[beta1-1]; k++){
+  for(int k = R[beta1-1]; k>=i; k--){
     int p = Q_1[k];
     int e = B[k];
     if (p+f <= ( (int)(Q[e].size())-1 ) && Q[e][p+f]<=j  )
@@ -80,7 +80,7 @@ int query(int i, int j){
     }
   }
 
-  for(int k=L[beta2+1]; k<=j; k++ ){
+  for(int k=R[beta2]+1; k<=j; k++ ){
     int p = Q_1[k];
     int e = B[k];
     if ( p>=f+1 && Q[e][p-f]>=i )
@@ -90,11 +90,11 @@ int query(int i, int j){
     }
   }
 
-  return f;
+  return {x,f};
 }
 
-void updateDataStructure(int x){
-  if( n > R[getSmallBlockOfPosition(n-1)] ){
+void updateDataStructure(){
+  if( n==1 || n > R[getSmallBlockOfPosition(n-1)] ){
     int b = getBigBlockOfPosition(n);
     L.push_back(n);
     R.push_back( min( b*(b+1)/2, n + ((int)ceil( float(b) / float(sqrtW) )) - 1 ) );
@@ -106,7 +106,7 @@ void updateDataStructure(int x){
     for(int beta = s; beta>=1; beta--){
       if(tau[beta]>tau[beta+1]){
         yString.push_back('1');
-        if( tau[beta]-tau[beta-1]>=size(s) ){
+        if( tau[beta]-tau[beta+1]>=size(s) ){
           deltaString.push_back('1');
         }
         else{
@@ -140,5 +140,5 @@ void updateDataStructure(int x){
 
 void update(int x){
   updateArrays(x);
-  updateDataStructure(x);
+  updateDataStructure();
 }
