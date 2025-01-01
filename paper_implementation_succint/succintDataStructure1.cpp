@@ -96,7 +96,7 @@ pair<int, int> NaiveQueryDataStructure1(int i, int j){
       x=e;
     }
   }
-  return make_pair(x,f);
+  return make_pair(C[x],f);
 }
 pair<int, int> query(int i, int j){
     int length = j-i+1;

@@ -116,7 +116,7 @@ pair<int, int> query(int i, int j){
     }
   }
 
-  return {x,f};
+  return {C[x],f};
 }
 
 void updateDataStructure(){

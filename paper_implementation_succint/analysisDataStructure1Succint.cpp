@@ -9,7 +9,8 @@ int kFromLog[10]={1, 10, 100, 1000, 10000, 100000, 1000000};
 pair<int, int> generateQuery(int n, int logk) {
   int k = kFromLog[logk];
   int a = (rng()%(n-1) )+1;
-  int b = min( a + ((int)ceil( (float)(n-a)/(float)k)), n) ;
+  int b = min( (int)(rng()%( ((int)ceil( (float)(n-a)/(float)k)) )+1 + a), n);
+
   return make_pair(a, b);
 }
 
@@ -37,6 +38,7 @@ ifstream finData( "clean_data/" + dataset + ".txt" );
 
 int main(){
 
+  //cout<<logUpperBound(8000000)<<"\n";
   auto start = chrono::high_resolution_clock::now();
   DataStructure1();
   for(int i=1; i<=10000000; i++){
@@ -44,7 +46,7 @@ int main(){
     int x;
     finData>>x;
     update(x);
-    //cout<<x<<" found\n";
+    //if(Delta<=100){cout<<Delta<<" found\n";}
     if(i%10000==0){
       cout<<"appended "<<i<<" elements\n";
 	  }
@@ -53,6 +55,8 @@ int main(){
 
   auto end = chrono::high_resolution_clock::now();
 
+  cout<<Delta<<" Delta\n";
+
   long long time = chrono::duration_cast<chrono::microseconds>(end - start).count();
   cout<<"Building time: "<<time<<" microseconds "<<" = "<< ( (double)time/(double)(1000000*60) )<<" minutes \n";
 
@@ -60,7 +64,7 @@ int main(){
   cout<<"Average memory usage per symbol: "<<((float)get_mem_usage()*1024*8)/((float)n)<<" Bits\n";
 
 
-    int cnt = 100;
+    int cnt = 1000000;
   for(int k=0; k<=6; k++){
     long long totalTime = 0;
     for(int q=1; q<=cnt; q++){

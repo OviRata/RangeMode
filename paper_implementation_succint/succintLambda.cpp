@@ -234,7 +234,7 @@ class LambdaDataStructure{
         }
       }
 
-      return {x,f};
+      return { C[x] ,f};
     }
 
 
