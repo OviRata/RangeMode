@@ -32,13 +32,14 @@ long get_mem_usage()
   return usage.ru_maxrss; // in KB
 }
 
-string dataset = "tickets" ;
+string dataset = "ddos_tcp" ;
 
 ifstream finData( "clean_data/" + dataset + ".txt" );
 
 int main(){
 
-  //cout<<logUpperBound(8000000)<<"\n";
+  //cout<<logUpperBound(32)<<"\n";
+  //return 0;
   auto start = chrono::high_resolution_clock::now();
   DataStructure1();
   for(int i=1; i<=10000000; i++){
@@ -89,7 +90,7 @@ int main(){
       long long currentDuration = std::chrono::duration_cast<std::chrono::nanoseconds>( end - start ).count();
       totalTime += currentDuration;
     }
-    cout<<"for log k="<<kFromLog[k]<<" :"<<((float)totalTime)/(float)cnt<<"\n";
+    cout<<"for k="<<kFromLog[k]<<" :"<<((float)totalTime)/(float)cnt<<"\n";
   }
 
 

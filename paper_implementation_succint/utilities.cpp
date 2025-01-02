@@ -5,7 +5,7 @@ using namespace std;
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
 int logLowerBound(long long x){
-  return 8*sizeof(x) - __builtin_clzll(x);
+  return 8*sizeof(x) - __builtin_clzll(x)-1;
 }
 
 int logUpperBound(long long x){
