@@ -9,7 +9,7 @@ The experiments have been conducted using the Linux operating system.
 
 # Experiments with Data Structure 1
 
-In order to obtain the experimental results for data structure 1, you have to create a folder named $\textbf{clean}\textunderscore\textbf{data}$ in the main directory of the repository. In this directory, you have to include the input file, which must contain the array of numbers which represent the array $A$. The value of $N$ must be changed from the file $\textbf{analysisDataStructure1Succint.cpp}$. 
+In order to obtain the experimental results for data structure 1, you have to create a folder named $\textbf{clean}\textunderscore\textbf{data}$ in the directory $\textbf{dataStructure1}$ of the repository. In this directory, you have to include the input file, which must contain the array of numbers which represent the array $A$. The value of $N$ must be changed from the file $\textbf{analysisDataStructure1Succint.cpp}$, as well as the name of the input file. 
 
 In order to compile the experiment file, you must use the following command, while in directory $\textbf{dataStructure1}$:
 
