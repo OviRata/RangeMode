@@ -2,7 +2,7 @@
 
 This repository contains implementations of 2 range mode data structures, requiring linear space, and answering queries in parameterized time. Data Structure 1 answers queries in $O(\sqrt{j-i+1})$ time, and supports appending an element to the end of the array in $O(\sqrt{n})$ worst-case time. Data Structure 2 answers queries in $O(\sqrt{j/w})$ time, and supports appending elements to the end of the array $O(\sqrt{n\cdot w})$ time.
 
-In order to run the experiments, you must download the Succint Data Structures Library  by Gog et al. : 
+In order to run the experiments, you must download the Succinct Data Structures Library  by Gog et al. : 
 https://github.com/simongog/sdsl-lite
 
 The experiments have been conducted using the Linux operating system.
