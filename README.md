@@ -18,9 +18,9 @@ In order to compile the experiment file, you must use the following command, whi
 
 # Experiments with Data Structure 2
 
-In order to obtain the experimental results for data structure 2, you have to create a folder named $\textbf{clean}\textunderscore\textbf{data}$ in the main directory of the repository. In this directory, you have to include the input file, which must contain the array of numbers which represent the array $A$. The value of $N$ must be changed from the file $\textbf{analysisDataStructure2Succint.cpp}$. 
+In order to obtain the experimental results for data structure 1, you have to create a folder named $\textbf{clean}\textunderscore\textbf{data}$ in the directory $\textbf{dataStructure2}$ of the repository. In this directory, you have to include the input file, which must contain the array of numbers which represent the array $A$. The value of $N$ must be changed from the file $\textbf{analysisDataStructure2Succint.cpp}$, as well as the name of the input file. 
 
-In order to compile the experiment file, you must use the following command, while in directory $\textbf{dataStructure2}$:
+In order to compile the experiment file, you must use the following command, while in directory $\textbf{dataStructure1}$:
 
  `g++ -O3 -DNDEBUG -I ~/include -L ~/lib  analysisDataStructure2Succint.cpp -o analysisDataStructure2Succint.exe -lsdsl` 
 
